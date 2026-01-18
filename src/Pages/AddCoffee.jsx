@@ -23,7 +23,13 @@ const AddCoffee = () => {
       },
       body: JSON.stringify(coffeeData),
     })
-      .then((res) => res.json())
+      .then((res) => {
+        const data = res.json();
+        if (!res.ok) {
+          throw new Error(data.message);
+        }
+        return data;
+      })
       .then((data) => {
         console.log("after post", data);
         if (data.insertedId) {
@@ -34,7 +40,12 @@ const AddCoffee = () => {
           });
         }
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        console.log(err);
+        Swal.fire({
+          text: `${err.message}`,
+        });
+      });
   };
   return (
     <section
