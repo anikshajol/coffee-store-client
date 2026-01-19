@@ -3,38 +3,66 @@ import bgImage from "../assets/images/more/11.png";
 import Swal from "sweetalert2";
 import { useLoaderData } from "react-router";
 const UpdateCoffee = () => {
-  const { _id, name, quantity, supplier, price, category, details, photo } =
+  const { _id, name, quantity, supplier, price, category, details } =
     useLoaderData();
-  const handleUpdateCoffee = (e) => {
+
+  // update function
+  const handleUpdateCoffee = async (e) => {
     e.preventDefault();
     const form = e.target;
     const formData = new FormData(form);
     const coffeeData = Object.fromEntries(formData.entries());
     console.log(coffeeData);
-    fetch(`http://localhost:5000/coffees/${_id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(coffeeData),
-    })
-      .then((res) => res.json())
-      .then((data) => {
+    const imageFile = formData.get("photo");
+
+    console.log(imageFile);
+    let imgUrl = "";
+    try {
+      if (imageFile && imageFile.name) {
+        const imageData = new FormData();
+        imageData.append("image", imageFile);
+
+        const imgRes = await fetch(
+          `https://api.imgbb.com/1/upload?expiration=600&key=${import.meta.env.VITE_IMAGE_KEY}`,
+          {
+            method: "POST",
+            body: imageData,
+          },
+        );
+        const data = await imgRes.json();
         console.log(data);
-        if (data.modifiedCount) {
-          Swal.fire({
-            title: "Good job!",
-            text: `update Successfully`,
-            icon: "success",
-            showConfirmButton: false,
-            timer: 1500,
-          });
+        if (data.success) {
+          imgUrl = data.data.display_url;
         }
-      })
-      .catch((err) => {
-        console.log(err.message);
+      }
+
+      if (imgUrl) {
+        coffeeData.photo = imgUrl;
+      } else {
+        delete coffeeData.photo;
+      }
+
+      const res = await fetch(`http://localhost:5000/coffees/${_id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(coffeeData),
       });
+      const result = await res.json();
+      console.log(result);
+      if (result.modifiedCount > 0) {
+        Swal.fire({
+          title: "Good job!",
+          text: "Data Updated successfully",
+          icon: "success",
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
+
   return (
     <section
       style={{ background: `url(${bgImage})`, backgroundPosition: "center" }}
@@ -121,13 +149,7 @@ const UpdateCoffee = () => {
           {/* photo */}
           <fieldset className="fieldset rounded-box p-4">
             <label className="label">Photo</label>
-            <input
-              type="text"
-              className="input w-full"
-              placeholder="Enter photo url"
-              name="photo"
-              defaultValue={photo}
-            />
+            <input type="file" name="photo" className="file-input" />
           </fieldset>
           <fieldset className="fieldset rounded-box p-4">
             <input

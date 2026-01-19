@@ -3,12 +3,12 @@ import { Link } from "react-router";
 import Swal from "sweetalert2";
 
 const HomeCard = ({ coffee, setCoffees }) => {
-  //   console.log(Object.keys(coffee));
+  // console.log(Object.keys(coffee));
+  // console.log(coffee.photo);
+
   const { _id, name, quantity, supplier, price, photo } = coffee;
 
   const handleDelete = (id) => {
-    console.log(id);
-
     Swal.fire({
       title: "Are you sure?",
       text: "You won't be able to revert this!",
